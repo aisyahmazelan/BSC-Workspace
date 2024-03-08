@@ -1,143 +1,197 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-	pageEncoding="ISO-8859-1"%>
-<%@page import="com.bsc.beans.Users"%>
+package com.bsc.controller;
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-	<title>Black Screen Cinema</title>
-	<%@include file="inc/header-links.jsp"%>
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.bsc.beans.Users; // Assuming you have a User class
+
+public class ChangePassword extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	public ChangePassword() {
+		super();
+	}
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		try {
+
+			PrintWriter out = response.getWriter();
+			out.println("<!DOCTYPE html>");
+			out.println("<html>");
+			out.println("<head>");
+			out.println("<title>Servlet StudentServlet</title>");
+			out.println("</head>");
+			out.println("<body>");
+
+			Users user = new Users();
+			HttpSession session = request.getSession();
 	
-</head>
+			try {
+
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/bsc?allowPublicKeyRetrieval=true&useSSL=false", "root",
+						"@dmin123");
+
+				String query = "SELECT * FROM users WHERE id = ?";
+				PreparedStatement preparedStatement = con.prepareStatement(query);
+
+				preparedStatement.setInt(1, Integer.parseInt((String) session.getAttribute("id"))); 
+				
 
 
-<!-- Body -->
-<body>
-<main class="page-wrapper">
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			request.setAttribute("user", user);
+			RequestDispatcher rd = request.getRequestDispatcher("profile.jsp");
+			rd.forward(request, response);
+
+			out.println("</body>");
+			out.println("</html>");
+			
+			// Handle success or failure as needed
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+
+			/* ---- LAYOUT FOR UPDATE QUERY ---- */
+
+			// Step 1: Create HTML layout
+			PrintWriter out = response.getWriter();
+			out.println("<!DOCTYPE html>");
+			out.println("<html>");
+			out.println("<head>");
+			out.println("<title>Servlet StudentServlet</title>");
+			out.println("</head>");
+			out.println("<body>");
+
+			// Step 2: Create ArrayList using associated Beans
+			
+			Users u = new Users();
+
+			// Step 3: Get variables (if neccessary)
+
+			/* Example: */
+			String Password = request.getParameter("password");
+			String ConfirmNewPassword = request.getParameter("cnp");
+			String NewPassword = request.getParameter("np");
+			String password = null;
+			HttpSession session = request.getSession();
+			Users user_passed  = new Users();
+			user_passed.setPassword(ConfirmNewPassword);
+			int row = 0;
+			
+			
+			// String password = request.getParameter("password");
+
+			try {
+				// Step 4: Connect to Database
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/bsc?allowPublicKeyRetrieval=true&useSSL=false", "root",
+						"@dmin123");
+
+				// Step 5: Initialize MySQL Variables
+				String query = null;
+				PreparedStatement preparedStatement = null;
+
+				String query2 = "SELECT password FROM users WHERE id = ?";
+				preparedStatement = con.prepareStatement(query2);
+				preparedStatement.setInt(1, ((int) session.getAttribute("id")));
+				ResultSet rs = preparedStatement.executeQuery();
+				
+				while (rs.next()) {
+					password = rs.getString("Password");
+				}
+
+
+				
+				if (!password.equals(Password))
+					request.setAttribute("invalidPasswordMessage", "Invalid Password");
+				
+				// Step 6: Run query
+				query = "UPDATE users SET password = ? WHERE id = ?";
+				preparedStatement = con.prepareStatement(query);
+				preparedStatement = con.prepareStatement(query);
+				
+
+				// Step 7: Create single variable from arraylist
 	
-	<%@include file="inc/navbar.jsp"%>
-	
+				// Step 8: Set data to variable
+				preparedStatement.setString(1, ConfirmNewPassword);
+				preparedStatement.setInt(2, ((int) session.getAttribute("id"))); // Assuming 'id' is an integer
+				/* -- Add more here -- */
+				
+				
+				
 
-	<!-- Page content -->
-      <section class="container pt-5">
-        <div class="row">
-        <!-- Sidebar (User info + Account menu) -->
-          <aside class="col-lg-3 col-md-4 border-end pb-5 mt-n5">
-            <div class="position-sticky top-0">
-              <div class="text-center pt-5">
-                <div class="d-table position-relative mx-auto mt-2 mt-lg-4 pt-5 mb-3">
-                  <img src="assets/img/account/baam.png" class="d-block rounded-circle" style="height: 150px; width: 150px; object-fit: cover;" alt="John Doe">
-                  <button type="button" class="btn btn-icon btn-light bg-white btn-sm border rounded-circle shadow-sm position-absolute bottom-0 end-0 mt-4" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Change picture">
-                    <i class="bx bx-refresh"></i>
-                  </button>
-                </div>
-                <h2 class="h5 mb-1">Baam Hensem</h2>
-                <p class="mb-3 pb-3">baamhensem@email.com</p>
-                <button type="button" class="btn btn-secondary w-100 d-md-none mt-n2 mb-3" data-bs-toggle="collapse" data-bs-target="#account-menu">
-                  <i class="bx bxs-user-detail fs-xl me-2"></i>
-                  Account menu
-                  <i class="bx bx-chevron-down fs-lg ms-1"></i>
-                </button>
-                <div id="profile.jsp" class="list-group list-group-flush collapse d-md-block">
-                  <a href="account-details.html" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="bx bx-cog fs-xl opacity-60 me-2"></i>
-                    Account Details
-                  </a>
-                  <a href="profile.jsp" class="list-group-item list-group-item-action d-flex align-items-center  active">
-                    <i class="bx bx-lock-alt fs-xl opacity-60 me-2"></i>
-                    Password
-                  </a>
-                  <a href="profile.jsp" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="bx bx-bell fs-xl opacity-60 me-2"></i>
-                    Notifications
-                  </a>             
-                  <a href="Logout.java" class="list-group-item list-group-item-action d-flex align-items-center">
-                    <i class="bx bx-log-out fs-xl opacity-60 me-2"></i>
-                    Sign Out
-                  </a>
-                </div>
-              </div>
-            </div>
-          </aside>
-          
-          
-          <!-- Password -->
-          <div class="col-md-8 offset-lg-1 pb-5 mb-2 mb-lg-4  mt-md-0">
-            <div class="ps-md-3 ps-lg-0 mt-md-2 pb-md-4">
-              <h1 class="h2 pb-3">Password</h1>
+				/* INSERT INTO TABLE NOTIFICATION */
+    			
+    			query = "INSERT INTO notifications "
+    					+ "(Title, Content, DateTime, UserID) "
+    					+ "VALUES (?, ?, ?, ?) ";
 
-              <!-- Basic info -->
-              <h2 class="h5 text-warning mb-4">Change Password</h2>
-              
-              <% 
-              Users user = (Users) request.getAttribute("user");  %>
-              
+    			preparedStatement = con.prepareStatement(query);
 
-              <!-- Password -->
-              <form class="needs-validation border-bottom pb-3 pb-lg-4" action="/bsc/ChangePassword" method="POST"  novalidate> 
-                <div class="row">
-                  <div class="col-sm-6 mb-4">
-                    <label for="cp" class="form-label fs-base">Current password</label>
-                    <div class="password-toggle">
-                      <input type="password" id="cp" name="cp" class="form-control form-control-lg" required>
-                      <label class="password-toggle-btn" aria-label="Show/hide password">
-                        <input class="password-toggle-check" type="checkbox">
-                        <span class="password-toggle-indicator"></span>
-                      </label>
-                      <div class="invalid-tooltip position-absolute top-100 start-0">Incorrect password!</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="row pb-2">
-                  <div class="col-sm-6 mb-4">
-                    <label for="np" class="form-label fs-base">New password</label>
-                    <div class="password-toggle">
-                      <input type="password" name="np" id="np" class="form-control form-control-lg" required>
-                      <label class="password-toggle-btn" aria-label="Show/hide password">
-                        <input class="password-toggle-check" type="checkbox">
-                        <span class="password-toggle-indicator"></span>
-                      </label>
-                      <div class="invalid-tooltip position-absolute top-100 start-0">Incorrect password!</div>
-                    </div>
-                  </div>
-                  <div class="col-sm-6 mb-4">
-                    <label for="cnp" class="form-label fs-base">Confirm new password</label>
-                    <div class="password-toggle">
-                      <input type="password" name="cnp" id="cnp" class="form-control form-control-lg" required>
-                      <label class="password-toggle-btn" aria-label="Show/hide password">
-                        <input class="password-toggle-check" type="checkbox">
-                        <span class="password-toggle-indicator"></span>
-                      </label>
-                      <div class="invalid-tooltip position-absolute top-100 start-0">Incorrect password!</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="d-flex mb-3">
-                  <button type="reset" class="btn btn-secondary me-3">Cancel</button>
-                  <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-              </form>
-              </div>
-              </div>
-        </div>
-      </section>
+                preparedStatement.setString(1, "Password Changed");
+                LocalDateTime now = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                String formattedDateTime = now.format(formatter);
+                preparedStatement.setString(2, "Your password has been changed at " + formattedDateTime);
+                preparedStatement.setString(3, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                preparedStatement.setInt(4, (int)session.getAttribute("id"));
+                row = 1;
+                
+                preparedStatement.executeUpdate();
 
-</main>
-  
-          
+				
 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+            session.removeAttribute("notificationCount");
+			session.setAttribute("notificationCount", row);
+			
+			request.setAttribute("user", u);
+			RequestDispatcher rd = request.getRequestDispatcher("change-password.jsp");
+			rd.forward(request, response);
 
-    <%@include file="inc/top-btn.jsp"%>
+			out.println("</body>");
+			out.println("</html>");
 
+			// Handle success or failure as needed
+		} catch (Exception e) {
+			e.printStackTrace();
 
-
-	<!-- Vendor Scripts -->
-	<script src="assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-	<script
-		src="assets/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
-
-	<!-- Main Theme Script -->
-	<script src="assets/js/theme.min.js"></script>
-</body>
-</html>
+		}
+	}
+}
